@@ -3,7 +3,11 @@ import User from "./User";
 const geminiApiKey = import.meta.env.GEMINI_API_KEY;
 class GeminiServices {
     private modelName = "gemini-2.5-flash";
+<<<<<<< HEAD
     genAI = new GoogleGenerativeAI(geminiApiKey);
+=======
+    genAI = new GoogleGenerativeAI("");
+>>>>>>> 943b424d00363d35576df0ba049a7e1aff9a6e97
     private model: any;
     constructor() {
         this.model = this.genAI.getGenerativeModel({ model: this.modelName });
