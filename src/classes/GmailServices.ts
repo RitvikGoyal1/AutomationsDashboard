@@ -1,4 +1,4 @@
-import Email from "./email";
+import Email from "./Email";
 import SentEmail from './SentEmail';
 import GeminiServices from './GeminiServices';
 import ReceivedEmail from './ReceivedEmail';
@@ -61,8 +61,8 @@ class GmailServices {
         const header = headers.find((h) => h.name.toLowerCase() === name.toLowerCase());
         return header ? header.value : null;
     }
-    public sendReply(body: string) {
-        
+    public static sendReply(body: string): void {
+
         // Sending reply through Gmail OAuth2
     }
 

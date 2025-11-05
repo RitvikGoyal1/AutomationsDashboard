@@ -1,30 +1,31 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import User from "./User";
+const geminiApiKey = import.meta.env.GEMINI_API_KEY;
 class GeminiServices {
     private modelName = "gemini-2.5-flash";
-    genAI = new GoogleGenerativeAI("AIzaSyBbzP4UdPk-TmaNAEe6IWDBZHKRH3_04cg");
+    genAI = new GoogleGenerativeAI(geminiApiKey);
     private model: any;
     constructor() {
         this.model = this.genAI.getGenerativeModel({ model: this.modelName });
 
     }
-    public genSummary(body: string): string {
+    public async genSummary(body: string): Promise<string> {
         const prompt = "Summarize the following email in 5-6 concise bullet points:\n\n" + body;
-        const response = this.model.generateContent({
+        const response = await this.model.generateContent({
             model: this.modelName,
             prompt: prompt,
         });
         return response;
     }
-    public genReply(body: string, writingStyle: string): string {
+    public async genReply(body: string, writingStyle: string): Promise<string> {
         const prompt = `Reply to the following email using this writing style and tone ${writingStyle}:\n\n` + body;
-        const response = this.model.generateContent({model: this.modelName, prompt: prompt});
+        const response = await this.model.generateContent({model: this.modelName, prompt: prompt});
         return response;
     }
-    public understandWritingStyle(samples: string[]): void {
+    public async understandWritingStyle(User: User,samples: string[]): Promise<void> {
         const combinedSamples = samples.join("\n\n");
         const prompt = `Analyze the following email samples and describe the writing style and tone in a few words:\n\n` + combinedSamples;
-        const response = this.model.generateContent({model: this.modelName, prompt: prompt});
+        const response = await this.model.generateContent({model: this.modelName, prompt: prompt});
         User.setWritingStyle(response);
     }
 }
