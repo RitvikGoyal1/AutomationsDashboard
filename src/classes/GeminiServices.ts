@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import User from "./User";
 class GeminiServices {
     private modelName = "gemini-2.5-flash";
-    genAI = new GoogleGenerativeAI("AIzaSyBbzP4UdPk-TmaNAEe6IWDBZHKRH3_04cg");
+    genAI = new GoogleGenerativeAI("");
     private model: any;
     constructor() {
         this.model = this.genAI.getGenerativeModel({ model: this.modelName });
