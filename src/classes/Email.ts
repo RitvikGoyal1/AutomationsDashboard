@@ -1,4 +1,4 @@
-class Email {
+class Email { 
     protected id: string;
     protected subject: string;
     protected body: string;
@@ -8,6 +8,9 @@ class Email {
         this.subject = subject;
         this.body = body;
         this.date = date;
+    }
+    public getId(): string {
+        return this.id;
     }
     public getBody(): string {
         return this.body;

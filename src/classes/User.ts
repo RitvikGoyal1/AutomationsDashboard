@@ -3,11 +3,11 @@ class User{
     constructor(){
         this.writingStyle = "";
     }
-    setWritingStyle(style: string): void {
+    public setWritingStyle(style: string): void {
         this.writingStyle = style;
     }
-    getWritingStyle(): string {
+    public getWritingStyle(): string {
         return this.writingStyle;
     }
 }
-export default User;
+export default User; 
