@@ -4,7 +4,7 @@ import User from "./User";
 const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 class GeminiServices {
-  private static modelName = "gemini-2.5-flash";
+  private static modelName = "gemini-2.5-flash-lite";
   private static genAI = new GoogleGenerativeAI(geminiApiKey);
   private static model = GeminiServices.genAI.getGenerativeModel({model: GeminiServices.modelName});
 
