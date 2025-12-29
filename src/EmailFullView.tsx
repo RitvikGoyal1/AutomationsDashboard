@@ -1,61 +1,113 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ReceivedEmail from "./classes/ReceivedEmail";
 import User from "./classes/User";
 import GmailServices from "./classes/GmailServices";
+import "./class-styles/EmailFullView.css";
 
-function EmailFullView() {
-  const user = new User();
-  user.setWritingStyle("Professional");
-  const body = "Hey there! I am planning an event and would like your help, please let me know when you are available. I would love to hear you out and discuss this further. By the way this event is really important and you can not miss it, we have to plan it the best so lets work together on this.";
-  const email = new ReceivedEmail("1", "Upcoming Event", body, new Date(), "email@gmail.com");
-  const gmailService = new GmailServices(".");
+type EmailFullViewProps = {
+  emails: ReceivedEmail[];
+  accessToken: string | null;
+};
+
+function EmailFullView({ emails, accessToken }: EmailFullViewProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { emailId } = (location.state as { emailId?: string }) || {};
+  const selectedEmail = useMemo(
+    () => emails.find((item) => item.getId() === emailId),
+    [emails, emailId]
+  );
+
+  const user = useMemo(() => {
+    const nextUser = new User();
+    nextUser.setWritingStyle("Professional");
+    return nextUser;
+  }, []);
+
   const [summary, setSummary] = useState("");
   const [reply, setReply] = useState("");
 
+  if (!selectedEmail) {
+    return (
+      <div className="email-full-view">
+        <div className="email-container">
+          <p>Unable to find that email.</p>
+          <button className="action-button primary" onClick={() => navigate("/")}>Back to inbox</button>
+        </div>
+      </div>
+    );
+  }
+
+  const gmailService = accessToken ? new GmailServices(accessToken) : null;
+
   const getSummary = () => {
     setSummary("Generating summary...");
-    email.genSummary().then((text) => {
+    selectedEmail.genSummary().then((text) => {
       setSummary(text);
     });
   };
+
   const getReply = () => {
     setReply("Generating reply...");
-    email.genReply(user).then((text) => {
+    selectedEmail.genReply(user).then((text) => {
       setReply(text);
     });
   };
   
   const handleSendReply = () => {
-    email.sendReply(reply, gmailService);
+    if (!gmailService) {
+      setReply("Access token required to send a reply.");
+      return;
+    }
+    selectedEmail.sendReply(reply, gmailService);
   };
 
+  const getInitials = (senderEmail: string) => senderEmail.charAt(0).toUpperCase();
+
   return (
-    <div>
-      <div>
-        <div>
-          <h3>Subject: {email.getSubject()}</h3>
-          <p style={{ color: "cyan" }}>{email.getDate().toLocaleString()}</p>
-          <p>From: {email.getSender()}</p>
-          <p>{email.getBody()}</p>
-        </div>
+    <div className="email-full-view">
+      <div className="email-header">
+        <button className="back-button" onClick={() => navigate(-1)}>←</button>
       </div>
-      <div>
-        <button onClick={getSummary}>Summarize</button>
-        <button onClick={getReply}>Reply</button>
+      <div className="email-container">
+        <div className="email-meta">
+          <div className="sender-info">
+            <div className="sender-avatar">{getInitials(selectedEmail.getSender())}</div>
+            <div className="sender-details">
+              <p className="sender-name">{selectedEmail.getSender()}</p>
+              <p className="sender-email">{selectedEmail.getSender()}</p>
+            </div>
+            </div>
+            <p className="email-date">{selectedEmail.getDate().toLocaleString()}</p>
+        </div>
+
+        <h1 className="email-subject">{selectedEmail.getSubject()}</h1>
+        <div className="email-body">{selectedEmail.getBody()}</div>
+        
+        <div className="email-actions">
+          <button className="action-button primary" onClick={getReply}>Reply</button>
+          <button className="action-button" onClick={getSummary}>Summarize</button>
+        </div>
+
+        {summary &&(
+          <div className="section">
+            <h2>Email Summary</h2>
+            <div className="summary-content">{summary}</div>
+            </div>
+        )}
+
+        {reply &&(
+          <div className="section reply-section">
+            <h2>Reply</h2>
+            <textarea className="reply-textarea" value={reply} onChange={(e)=>setReply(e.target.value)} placeholder="Write your reply..." />
+            <div className="reply-actions">
+              <button className="action-button primary" onClick={handleSendReply}>Send Reply</button>
+              <button className="action-button" onClick={()=>setReply("")}>Cancel</button>
+              </div>
+          </div>
+        )}
       </div>
-      {summary && (
-        <div>
-          <h2>Summary</h2>
-          <p>{summary}</p>
-        </div>
-      )}
-      {reply && (
-        <div>
-          <h2>Reply</h2>
-          <p>{reply}</p>
-          <button onClick={handleSendReply}>Send Reply (Mock)</button>
-        </div>
-      )}
     </div>
   );
 }
