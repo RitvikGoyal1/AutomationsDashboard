@@ -115,9 +115,9 @@ class GmailServices {
         }
     }
 
-    private getRecipientEmail(emailId: string): string{
-        return"";
-    }
+    // private getRecipientEmail(emailId: string): string{
+    //     return"";
+    // }
 }
 
 export default GmailServices;

@@ -3,7 +3,7 @@ import {useState, useEffect} from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import EmailFullView from "./EmailFullView";
 import Auth from "./Auth.tsx";
-import {getAccessToken} from "./Auth.ts";
+//import {getAccessToken} from "./Auth.ts";
 import "./App.css";
 import GmailServices from "./classes/GmailServices";
 import ReceivedEmail from "./classes/ReceivedEmail";
