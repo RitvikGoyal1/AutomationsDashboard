@@ -1,15 +1,15 @@
 import path from "path";
-import {fileURLToPath} from "url";
-import sqlite3  from "sqlite3";
-import {open, type Database} from "sqLite";
+import { fileURLToPath } from "url";
+import sqlite3 from "sqlite3";
+import { open, type Database } from "sqlite";
 
-let dbInstance: Database<sqlite3.Database, sqlite3.Statement> | null=null;
+let dbInstance: Database<sqlite3.Database, sqlite3.Statement> | null = null;
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname=path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-export async function initDB(): Promise<Database<sqlite3.Database, sqlite3.Statement>>{
-    if (dbInstance){
+export async function initDB(): Promise<Database<sqlite3.Database, sqlite3.Statement>> {
+    if (dbInstance) {
         return dbInstance;
     }
     const dbPath = path.join(__dirname, "app.db");
