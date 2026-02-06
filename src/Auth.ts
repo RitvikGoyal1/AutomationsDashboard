@@ -4,7 +4,6 @@ import {
   PublicClientApplication,
 } from "@azure/msal-browser";
 const CLIENT_ID = import.meta.env.VITE_AZURE_CLIENT_ID;
-const TENANT_ID = import.meta.env.VITE_AZURE_TENANT_ID || "common";
 const SCOPES = ["Mail.Read", "Mail.Send", "User.Read", "offline_access"];
 const msalInstance = new PublicClientApplication({
   auth: {
