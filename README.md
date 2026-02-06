@@ -1,3 +1,10 @@
+# To Do List
+- Implement a search bar that considers senders, subjects and body
+  - Merge Sort and Binary Search
+- Database for storing user information
+- To Do List tracker from emails
+- Personalization generator for replies
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
