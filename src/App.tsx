@@ -50,7 +50,7 @@ function App() {
     new ReceivedEmail(
       "Mock2",
       "Project Update",
-      "Hi! It's me Tina! I was working on the System Hardware Project and ran into some difficulties. I am not really sure how long it would for me to get it up and running, I'd say roughly 2 weeks. I hope you understand. \nRegards,\nTina",
+      "Hi! It's me Tina! I was working on the System Hardware Project and ran into some difficulties. I am not really sure how long it would take for me to get it up and running, I'd say roughly 2 weeks. I hope you understand. \nRegards,\nTina",
       new Date(Date.now() - 86400000),
       "Tina_to@mail.com",
     ),
