@@ -62,7 +62,7 @@ function EmailFullView({ emails, accessToken }: EmailFullViewProps) {
 
   const handleSendReply = () => {
     if (!microsoftGraphService) {
-      setReply("Access token required to send a reply.");
+      setReply("Access token required to send a reply. If you are using mock data, please sign in to send from your account.");
       return;
     }
     selectedEmail.sendReply(reply, microsoftGraphService);
