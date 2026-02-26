@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import EmailFullView from "./EmailFullView";
 import Auth from "./Auth.tsx";
-//import {getAccessToken} from "./Auth.ts";
+import {getAccessToken} from "./Auth.ts";
 import "./App.css";
 import MicrosoftGraphServices from "./classes/MicrosoftGraphServices.ts";
 import ReceivedEmail from "./classes/ReceivedEmail";
@@ -200,6 +200,7 @@ function App() {
                     onChange={(date: Date | null) => setStartDate(date)}
                     placeholderText="Filter Date"
                   />
+                  <>
                   <br></br>
                   <br></br>
                   <br></br>
