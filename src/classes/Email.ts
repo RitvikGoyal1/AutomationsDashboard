@@ -1,4 +1,5 @@
-class Email { 
+// Abstract base class for SentEmail and ReceivedEmail
+class Email {
     protected id: string;
     protected subject: string;
     protected body: string;
@@ -21,7 +22,5 @@ class Email {
     public getDate(): Date {
         return this.date;
     }
-
 }
 export default Email;
-
