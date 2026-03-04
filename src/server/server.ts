@@ -1,9 +1,17 @@
 import express, { type Request, type Response } from "express";
 import { initDB, saveOrUpdateUser, getRecentUsers } from "./database.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 app.use(express.json());
+
+// Serve static files from the dist directory
+app.use(express.static(path.join(__dirname)));
 
 // Enable CORS for local development
 app.use((req: Request, res: Response, next) => {
@@ -46,6 +54,11 @@ app.get("/api/users/recent", async (_req: Request, res: Response) => {
         console.error("Get users error:", error);
         res.status(500).json({ error: "Failed to get users" });
     }
+});
+
+// Serve index.html for all other routes (client-side routing)
+app.get("*", (_req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.listen(port, () => {
