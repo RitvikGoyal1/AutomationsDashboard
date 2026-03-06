@@ -103,12 +103,13 @@ function App() {
             // Save emails to database
             const account = await getActiveAccount();
             const userEmail = account?.username || "";
-            
+
             const decodedToken = decodeJwt(accessToken);
-            const tokenEmail = decodedToken?.upn || decodedToken?.email || decodedToken?.preferred_username || "";
-            
+            const tokenEmail =
+                decodedToken?.upn || decodedToken?.email || decodedToken?.preferred_username || "";
+
             const finalEmail = userEmail || tokenEmail;
-            
+
             if (finalEmail) {
                 for (const email of receivedEmails) {
                     try {
@@ -197,7 +198,8 @@ function App() {
                                     }}
                                 >
                                     <h2>Mail Dashboard</h2>
-                                    {/* Sidebar navigation */}
+                                    
+                                    {/* Sidebar navigation */}  
                                     <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                                         <li style={{ marginBottom: "10px" }}>
                                             <Link

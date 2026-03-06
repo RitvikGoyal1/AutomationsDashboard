@@ -134,7 +134,9 @@ function AuthPage({ onSignIn, onUseMockData }: AuthProps) {
 
             <div className="auth-card">
                 <h1 className="auth-title">Mail Automation Dashboard</h1>
-
+                <p>
+                    Please only use @outlook.com or @hotmail.com emails to test or use "Mock Data"
+                </p>
                 <button className="auth-button" onClick={handleSignIn} disabled={loading}>
                     {loading ? "Signing in..." : "Sign in with Microsoft"}
                 </button>
