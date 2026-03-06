@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import EmailFullView from "./EmailFullView";
 import Auth from "./Auth.tsx";
+import { getActiveAccount } from "./Auth.ts";
 import "./App.css";
 import MicrosoftGraphServices from "./classes/MicrosoftGraphServices.ts";
 import ReceivedEmail from "./classes/ReceivedEmail";
@@ -102,12 +103,22 @@ function App() {
             setEmails(receivedEmails);
 
             // Save emails to database
-            const decodedToken = decodeJwt(accessToken);
-            const userEmail = decodedToken?.upn || decodedToken?.email || "";
-            console.log(`User email: ${userEmail}`);
+            const account = await getActiveAccount();
+            console.log("Active account:", account);
+            const userEmail = account?.username || "";
+            console.log(`User email from account: ${userEmail}`);
             
-            if (userEmail) {
-                console.log(`Saving ${receivedEmails.length} emails to backup for ${userEmail}`);
+            // Also try decoding token as backup
+            const decodedToken = decodeJwt(accessToken);
+            console.log("Decoded token fields:", Object.keys(decodedToken || {}));
+            const tokenEmail = decodedToken?.upn || decodedToken?.email || decodedToken?.preferred_username || "";
+            console.log(`User email from token: ${tokenEmail}`);
+            
+            const finalEmail = userEmail || tokenEmail;
+            console.log(`Final email to use: ${finalEmail}`);
+            
+            if (finalEmail) {
+                console.log(`Saving ${receivedEmails.length} emails to backup for ${finalEmail}`);
                 let savedCount = 0;
                 let failedCount = 0;
                 
@@ -125,7 +136,7 @@ function App() {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 emailId: email.getId(),
-                                userEmail,
+                                userEmail: finalEmail,
                                 subject: email.getSubject(),
                                 sender: email.getSender(),
                                 receivedDatetime: email.getDate().toISOString(),
@@ -134,7 +145,7 @@ function App() {
                         
                         if (!response.ok) {
                             const text = await response.text();
-                            console.error(`❌ Failed to save email ${email.getId()}: ${response.status} - ${text}`);
+                            console.error(`Failed to save email ${email.getId()}: ${response.status} - ${text}`);
                             failedCount++;
                         } else {
                             savedCount++;
@@ -144,9 +155,9 @@ function App() {
                         failedCount++;
                     }
                 }
-                console.log(`✅ Finished saving emails: ${savedCount} saved, ${failedCount} failed`);
+                console.log(`Finished saving emails: ${savedCount} saved, ${failedCount} failed`);
             } else {
-                console.warn("⚠️ No user email found, skipping backup save");
+                console.warn("No user email found, skipping backup save");
             }
         } catch (e) {
             console.error("❌ Error fetching emails:", e);
