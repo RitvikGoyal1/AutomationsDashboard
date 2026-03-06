@@ -13,6 +13,12 @@ export async function initDB(): Promise<PgPool> {
         process.env.DATABASE_URL ||
         `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
 
+    if (!connectionString || connectionString.startsWith('postgresql://undefined')) {
+        const error = new Error('DATABASE_URL environment variable is not set');
+        console.error(error.message);
+        throw error;
+    }
+
     const pool = new Pool({
         connectionString,
     });
