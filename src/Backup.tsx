@@ -13,9 +13,8 @@ function Backup({ accessToken, useMockData }: BackupProps) {
     const [displayEmails, setDisplayEmails] = useState<ReceivedEmail[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const API_BASE = (
-        import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "" : "http://localhost:3001")
-    ).replace(/\/$/, "");
+    const API_BASE =
+        import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "" : "http://localhost:3001");
 
     useEffect(() => {
         if (useMockData || !accessToken) {
@@ -27,17 +26,15 @@ function Backup({ accessToken, useMockData }: BackupProps) {
             setLoading(true);
             try {
                 const account = await getActiveAccount();
-                const userEmail = account?.username || "";
+                const userEmail = account ? account.username : "";
 
                 if (!userEmail) {
                     setDisplayEmails([]);
                     return;
                 }
 
-                const response = await fetch(
-                    `${API_BASE}/api/emails?userEmail=${encodeURIComponent(userEmail)}`
-                );
-                
+                const response = await fetch(`${API_BASE}/api/emails?userEmail=${userEmail}`);
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch emails");
                 }
@@ -125,7 +122,7 @@ function Backup({ accessToken, useMockData }: BackupProps) {
                         {!loading && displayEmails.length > 0 && (
                             <div>
                                 {displayEmails.map((email) => (
-                                    // Display each email
+                                    // show email metadata
                                     <div
                                         key={email.getId()}
                                         style={{

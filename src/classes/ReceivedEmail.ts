@@ -2,7 +2,7 @@ import Email from "./Email";
 import MistralServices from "./MistralServices";
 import MicrosoftGraphServices from "./MicrosoftGraphServices";
 import User from "./User";
-//Inherit from Email and add sender variable, also add a method to generate summary and reply using MistralServices and send the reply using MicrosoftGraphServices
+// received email with sender info
 class ReceivedEmail extends Email {
     private sender: string;
 

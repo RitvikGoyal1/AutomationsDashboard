@@ -12,28 +12,29 @@ interface SentProps {
     accessToken: string | null;
     useMockData?: boolean;
 }
-// This page displays the users tasks which are extracted from user's latest sent emails
+// page shows user tasks extracted from their emails
 function Tasks({ accessToken, useMockData }: SentProps) {
     const syntheticRootLabel = "__TASKS_ROOT__";
-    // Stores the tree of tasks
+    // tree for storing tasks
     const [taskTree, setTaskTree] = useState<TaskTree | null>(null);
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
     const [, setTreeVersion] = useState(0);
     const [subtaskInputs, setSubtaskInputs] = useState<Map<string, string>>(new Map());
-    // This function is used to parse a raw task to understand where it fits in the tree structure based on the number of spaces
+    // count spaces at start of line for indent
     const countLeadingSpaces = (line: string): number => line.length - line.trimStart().length;
-    // This function ensures that the metadata is under the correct task
+    // make sure metadata goes under right task
     const normalizeTaskLines = (lines: string[]): string[] => {
         const normalized: string[] = [];
         let lastTaskIndent = 0;
 
         for (const line of lines) {
             const trimmed = line.trim();
-            const isMetadata = /^\s*(Deadline|Priority)\s*:/i.test(trimmed);
-            if (isMetadata) {
+            // check if its deadline or priority
+            if (trimmed.startsWith("Deadline:") || trimmed.startsWith("Priority:")) {
                 const leadingSpaces = countLeadingSpaces(line);
-                if (normalized.length > 0 && leadingSpaces === 0) {
-                    normalized.push(`${" ".repeat(lastTaskIndent + 2)}${trimmed}`);
+                if (leadingSpaces === 0 && normalized.length > 0) {
+                    // add indent to match parent task
+                    normalized.push(" ".repeat(lastTaskIndent + 2) + trimmed);
                 } else {
                     normalized.push(line);
                 }
@@ -48,11 +49,8 @@ function Tasks({ accessToken, useMockData }: SentProps) {
     };
 
     const buildTaskTree = (rawTasks: string): TaskTree | null => {
-        // Split raw data into lines
-        const rawLines = rawTasks
-            .replace(/\r/g, "")
-            .split("\n")
-            .filter((line) => line.trim() !== "");
+        // split into lines
+        const rawLines = rawTasks.split("\n").filter((line) => line.trim() !== "");
 
         if (rawLines.length === 0) {
             return null;
@@ -63,20 +61,19 @@ function Tasks({ accessToken, useMockData }: SentProps) {
         const taskLines = [syntheticRootLabel, ...normalizedLines.map((line) => `  ${line}`)];
         return TaskTree.fromTaskLines(taskLines);
     };
-    // Automationally expands all the nodes(parent tasks) on load
+    // expand all parent tasks when loading
     const initializeExpandedNodes = (tree: TaskTree | null): void => {
         if (!tree) {
             setExpandedNodes(new Set());
             return;
         }
-        // Gets root
         const root = tree.getRoot();
         if (!root) {
             setExpandedNodes(new Set());
             return;
         }
         const expanded = new Set<string>([root.getDescription()]);
-        // Traverses tree and expand all nodes with children
+        // go through tree and expand nodes that have children
         for (const node of tree.traversePreOrder()) {
             if (node.getChildren().length > 0) {
                 expanded.add(node.getDescription());
@@ -84,10 +81,10 @@ function Tasks({ accessToken, useMockData }: SentProps) {
         }
         setExpandedNodes(expanded);
     };
-    // Checks if a node is a deadline or a priority
+    // check if line is deadline/priority metadata
     const isTaskMetadata = (description: string): boolean =>
         /^\s*(Deadline|Priority)\s*:/i.test(description);
-    // This function toggles the expansion of a node when the user clicks on it by adding or removing it from the expandedNodes set which is used to determine which nodes are expanded or not
+    // toggle node expansion when clicked
     const toggleExpand = (description: string): void => {
         setExpandedNodes((prev) => {
             const next = new Set(prev);
@@ -99,7 +96,7 @@ function Tasks({ accessToken, useMockData }: SentProps) {
             return next;
         });
     };
-    // This function removes a task from the tree when checked off
+    // remove task when user checks it off
     const toggleCompleted = (node: TaskNode): void => {
         if (!taskTree) return;
         const description = node.getDescription();
@@ -107,11 +104,12 @@ function Tasks({ accessToken, useMockData }: SentProps) {
         setTreeVersion((current) => current + 1);
     };
     // Add a subtask to a parent node
+    // add subtask under parent
     const addSubtask = (parentDescription: string): void => {
         if (!taskTree) return;
-        const subtaskText = subtaskInputs.get(parentDescription)?.trim();
-        if (!subtaskText) return;
-        
+        const subtaskText = subtaskInputs.get(parentDescription);
+        if (!subtaskText || !subtaskText.trim()) return;
+
         try {
             taskTree.addTask(parentDescription, subtaskText);
             setSubtaskInputs((prev) => {
@@ -124,7 +122,7 @@ function Tasks({ accessToken, useMockData }: SentProps) {
             console.error("Error adding subtask:", error);
         }
     };
-    // Update subtask input value
+    // update input field for adding subtasks
     const updateSubtaskInput = (nodeDescription: string, value: string): void => {
         setSubtaskInputs((prev) => {
             const next = new Map(prev);
@@ -132,10 +130,10 @@ function Tasks({ accessToken, useMockData }: SentProps) {
             return next;
         });
     };
-    // This function is used to render a task node and its children recursively with styling
+    // render task node with its children
     const renderTaskNode = (node: TaskNode, depth: number) => {
         const children = node.getChildren();
-        // Sort children: non-metadata first, then metadata
+        // put non-metadata first, then metadata
         const sortedChildren = [...children].sort((a, b) => {
             const aIsMetadata = isTaskMetadata(a.getDescription());
             const bIsMetadata = isTaskMetadata(b.getDescription());
@@ -204,7 +202,9 @@ function Tasks({ accessToken, useMockData }: SentProps) {
                             type="text"
                             placeholder="Add subtask..."
                             value={subtaskInputs.get(node.getDescription()) || ""}
-                            onChange={(e) => updateSubtaskInput(node.getDescription(), e.target.value)}
+                            onChange={(e) =>
+                                updateSubtaskInput(node.getDescription(), e.target.value)
+                            }
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     addSubtask(node.getDescription());
@@ -323,10 +323,10 @@ function Tasks({ accessToken, useMockData }: SentProps) {
         loadTasksFromGraph(accessToken);
     }, [accessToken, useMockData]);
 
-    const root = taskTree?.getRoot() || null;
-    // Checks if root exists, stores as boolean
+    const root = taskTree ? taskTree.getRoot() : null;
+    // check if we have tasks
     const hasTasks = !!root;
-    const rootChildren = root?.getChildren() ?? [];
+    const rootChildren = root ? root.getChildren() : [];
 
     return (
         <>

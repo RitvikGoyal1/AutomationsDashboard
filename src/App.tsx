@@ -25,15 +25,13 @@ function App() {
     const [searchResults, setSearchResults] = useState<ReceivedEmail[]>([]);
     const [showSearchResult, setShowSearchResult] = useState(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    // Helps get better error messages by decoding JWT tokens
+    // decode jwt to get user info
     const decodeJwt = (token: string) => {
         try {
-            const payload = token.split(".")[1];
-
-            const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-
-            const json = atob(base64);
-            return JSON.parse(json);
+            const parts = token.split(".");
+            const payload = parts[1];
+            const decoded = atob(payload);
+            return JSON.parse(decoded);
         } catch (e) {
             return null;
         }
@@ -76,7 +74,7 @@ function App() {
             "hr@gmail.com"
         ),
     ];
-    // Different cases for displaying emails
+    // load emails when user signs in
     useEffect(() => {
         if (accessToken && !useMockData) {
             fetchEmails();
@@ -100,9 +98,9 @@ function App() {
             const receivedEmails = await microsoftGraphServices.getReceivedEmails();
             setEmails(receivedEmails);
 
-            // Save emails to database
+            // save emails to db
             const account = await getActiveAccount();
-            const userEmail = account?.username || "";
+            const userEmail = account ? account.username : "";
 
             const decodedToken = decodeJwt(accessToken);
             const tokenEmail =
@@ -198,8 +196,8 @@ function App() {
                                     }}
                                 >
                                     <h2>Mail Dashboard</h2>
-                                    
-                                    {/* Sidebar navigation */}  
+
+                                    {/* sidebar links */}
                                     <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                                         <li style={{ marginBottom: "10px" }}>
                                             <Link
@@ -245,7 +243,7 @@ function App() {
                                             marginBottom: "10px",
                                         }}
                                     >
-                                        {/* Search for Emails with text*/}
+                                        {/* search by subject */}
                                         <input
                                             type="text"
                                             placeholder="Search by subject..."
@@ -271,7 +269,7 @@ function App() {
                                                     alert("Please enter a subject to search");
                                                     return;
                                                 }
-                                                // Sort by subject and return all subject matches
+                                                // filter by subject
                                                 const sortedBySubject = mergeSortEmailsBySubject([
                                                     ...emails,
                                                 ]);
@@ -301,7 +299,7 @@ function App() {
                                             marginBottom: "10px",
                                         }}
                                     >
-                                        {/* Lets users choose a date to search emails by */}
+                                        {/* search by date picker */}
 
                                         <DatePicker
                                             selected={startDate}
@@ -322,7 +320,7 @@ function App() {
                                                     alert("Please select a date to search");
                                                     return;
                                                 }
-                                                // Sort and filter emails by selected date
+                                                // filter emails by date
                                                 const sortedByDate = [...emails].sort(
                                                     (a, b) =>
                                                         a.getDate().getTime() -
@@ -355,7 +353,7 @@ function App() {
                                         >
                                             Search Date
                                         </button>
-                                        {/* // Button to clear all search queries and display the main page */}
+                                        {/* clear search button */}
                                         <button
                                             style={{
                                                 padding: "8px 16px",
@@ -378,7 +376,7 @@ function App() {
                                     <br />
                                     <br />
                                     <br />
-                                    {/* The button to initiate the process of extracting user's sent emails, understanding their tone/style and setting it to their object */}
+                                    {/* button to analyze writing style from sent emails */}
                                     <button
                                         style={{ backgroundColor: "LightGreen" }}
                                         onClick={async () => {
@@ -389,7 +387,7 @@ function App() {
                                             try {
                                                 const svc = new MicrosoftGraphServices(accessToken);
                                                 const sent = await svc.getSentEmails();
-                                                // Logs the emails that will be used as samples, used to ensure the program is on track
+                                                // log samples for debugging
                                                 console.log("Sent emails:", sent);
                                                 const emailSamples = sent.map((e) => e.getBody());
                                                 const newUser = new User();
@@ -411,7 +409,7 @@ function App() {
                                     >
                                         Understand Writing Style
                                     </button>
-                                    {/* Sorts emails by subject using merge sort */}
+                                    {/* sort emails by subject */}
                                     <button
                                         style={{
                                             backgroundColor: "LightBlue",
@@ -473,7 +471,7 @@ function App() {
                                                         </div>
                                                     );
                                                 })()}
-                                            {/* // Retry button to try to load the emails again */}
+                                            {/* retry button */}
                                             <button
                                                 onClick={fetchEmails}
                                                 style={{
@@ -495,7 +493,7 @@ function App() {
                                             <p>No emails found.</p>
                                         </div>
                                     )}
-                                    {/* // Search Function */}
+                                    {/* search results */}
                                     {showSearchResult && searchResults.length > 0 && (
                                         <div
                                             style={{
@@ -525,7 +523,7 @@ function App() {
                                                             marginBottom: "8px",
                                                         }}
                                                     >
-                                                        {/*Displaying search results with a different background */}
+                                                        {/* display search result */}
 
                                                         <div
                                                             style={{
@@ -572,7 +570,7 @@ function App() {
                                             ))}
                                         </div>
                                     )}
-                                    {/* Display all emails */}
+                                    {/* show all emails */}
                                     {!loading && emails.length > 0 && (
                                         <div>
                                             <h3>All Emails:</h3>
@@ -641,7 +639,7 @@ function App() {
                                                                 whiteSpace: "nowrap",
                                                             }}
                                                         >
-                                                            {/* Only show limited preview of the email */}
+                                                            {/* preview only 100 chars */}
                                                             {email.getBody().substring(0, 100)}...
                                                         </div>
                                                     </div>
@@ -655,7 +653,7 @@ function App() {
                     }
                 />
                 <Route
-                    // Open the email as full view to allow replies and summaries
+                    // open email in full view
                     path="/inbox/email"
                     element={
                         <EmailFullView

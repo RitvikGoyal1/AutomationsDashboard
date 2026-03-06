@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ReceivedEmail from "./classes/ReceivedEmail";
 import SentEmail from "./classes/SentEmail";
@@ -13,64 +13,37 @@ type EmailFullViewProps = {
 };
 
 type ViewableEmail = ReceivedEmail | SentEmail;
-// Allows users to open a single email as a whole and be able to get a summary and send a reply
+// let users open single email and get summary/send reply
 function EmailFullView({ emails, accessToken, user }: EmailFullViewProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const { emailId, email } =
         (location.state as { emailId?: string; email?: ViewableEmail }) || {};
-    const selectedEmail = useMemo<ViewableEmail | undefined>(() => {
-        if (email) return email;
-        return emails.find((item) => item.getId() === emailId);
-    }, [emails, emailId, email]);
 
-    const userForReply = useMemo(() => {
-        if (user) return user;
-        const nextUser = new User();
-        nextUser.setWritingStyle("Professional");
-        return nextUser;
-    }, [user]);
+    // find the email
+    let selectedEmail: ViewableEmail | undefined;
+    if (email) {
+        selectedEmail = email;
+    } else {
+        selectedEmail = emails.find((item) => item.getId() === emailId);
+    }
+
+    // setup user for replying
+    let userForReply = user;
+    if (!userForReply) {
+        userForReply = new User();
+        userForReply.setWritingStyle("Professional");
+    }
 
     const [summary, setSummary] = useState("");
     const [reply, setReply] = useState("");
 
     const isReceivedEmail = (item: ViewableEmail): item is ReceivedEmail =>
-        item instanceof ReceivedEmail || "getSender" in item || "sender" in item;
+        item instanceof ReceivedEmail;
 
-    const isSentEmail = (item: ViewableEmail): item is SentEmail =>
-        item instanceof SentEmail || "getRecipient" in item || "recipient" in item;
+    const isSentEmail = (item: ViewableEmail): item is SentEmail => item instanceof SentEmail;
 
-    const isValidEmail = (item: unknown): item is ViewableEmail =>
-        item !== null &&
-        typeof item === "object" &&
-        ("getSender" in item ||
-            "getRecipient" in item ||
-            "sender" in item ||
-            "recipient" in item) &&
-        ("getDate" in item || "date" in item) &&
-        ("getSubject" in item || "subject" in item) &&
-        ("getBody" in item || "body" in item) &&
-        ("getId" in item || "id" in item);
-    // TODO
-    const getEmailProperty = <T,>(
-        obj: unknown,
-        methodName: string,
-        propertyName: string,
-        fallback: T
-    ): T => {
-        if (!obj || typeof obj !== "object") return fallback;
-        const obj_ = obj as Record<string, unknown>;
-        if (typeof obj_[methodName] === "function") {
-            try {
-                return (obj_[methodName] as () => T)();
-            } catch {
-                return fallback;
-            }
-        }
-        return (obj_[propertyName] as T) ?? fallback;
-    };
-
-    if (!selectedEmail || !isValidEmail(selectedEmail)) {
+    if (!selectedEmail) {
         return (
             <div className="email-full-view">
                 <div className="email-container">
@@ -93,12 +66,13 @@ function EmailFullView({ emails, accessToken, user }: EmailFullViewProps) {
             });
             return;
         }
-        const text = getEmailProperty(selectedEmail, "getBody", "body", "");
+        // for sent emails just truncate
+        const text = selectedEmail.getBody();
         if (text.length <= 220) {
             setSummary(text);
-            return;
+        } else {
+            setSummary(text.substring(0, 220) + "...");
         }
-        setSummary(`${text.slice(0, 220)}...`);
     };
 
     const getReply = () => {
@@ -126,11 +100,13 @@ function EmailFullView({ emails, accessToken, user }: EmailFullViewProps) {
 
     const getInitials = (senderEmail: string) => senderEmail.charAt(0).toUpperCase();
 
-    const senderOrRecipient = isReceivedEmail(selectedEmail)
-        ? getEmailProperty(selectedEmail, "getSender", "sender", "Unknown")
-        : isSentEmail(selectedEmail)
-          ? getEmailProperty(selectedEmail, "getRecipient", "recipient", "Unknown")
-          : "Unknown";
+    // figure out who to display
+    let senderOrRecipient = "Unknown";
+    if (isReceivedEmail(selectedEmail)) {
+        senderOrRecipient = selectedEmail.getSender();
+    } else if (isSentEmail(selectedEmail)) {
+        senderOrRecipient = selectedEmail.getRecipient();
+    }
 
     return (
         <div className="email-full-view">
@@ -148,22 +124,11 @@ function EmailFullView({ emails, accessToken, user }: EmailFullViewProps) {
                             <p className="sender-email">{senderOrRecipient}</p>
                         </div>
                     </div>
-                    <p className="email-date">
-                        {getEmailProperty(
-                            selectedEmail,
-                            "getDate",
-                            "date",
-                            new Date()
-                        ).toLocaleString?.() || "Unknown Date"}
-                    </p>
+                    <p className="email-date">{selectedEmail.getDate().toLocaleString()}</p>
                 </div>
 
-                <h1 className="email-subject">
-                    {getEmailProperty(selectedEmail, "getSubject", "subject", "No Subject")}
-                </h1>
-                <div className="email-body">
-                    {getEmailProperty(selectedEmail, "getBody", "body", "")}
-                </div>
+                <h1 className="email-subject">{selectedEmail.getSubject()}</h1>
+                <div className="email-body">{selectedEmail.getBody()}</div>
 
                 <div className="email-actions">
                     {isReceivedEmail(selectedEmail) && (

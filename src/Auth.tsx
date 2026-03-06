@@ -13,15 +13,14 @@ interface SavedAccount {
     displayName: string | null;
 }
 
-const API_BASE = (
-    import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "" : "http://localhost:3001")
-).replace(/\/$/, "");
+const API_BASE =
+    import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "" : "http://localhost:3001");
 
 function maskEmail(email: string): string {
-    const [localPart, domain] = email.split("@");
-    if (!localPart || !domain) return email;
-    const masked = localPart.substring(0, 2) + "***";
-    return `${masked}@${domain}`;
+    const parts = email.split("@");
+    if (parts.length !== 2) return email;
+    const start = parts[0].substring(0, 2);
+    return start + "***@" + parts[1];
 }
 
 function AuthPage({ onSignIn, onUseMockData }: AuthProps) {
@@ -31,7 +30,7 @@ function AuthPage({ onSignIn, onUseMockData }: AuthProps) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch recent users from database
+        // get recent users from db
         fetch(`${API_BASE}/api/users/recent`)
             .then((res) => res.json())
             .then((data) => {
@@ -41,7 +40,7 @@ function AuthPage({ onSignIn, onUseMockData }: AuthProps) {
             })
             .catch((err) => console.error("Failed to fetch recent users:", err));
 
-        // Handle OAuth redirect
+        // check for oauth redirect params
         const urlParams = window.location.search + window.location.hash;
         const hasAuthParams = urlParams.includes("code=") || urlParams.includes("error=");
 
@@ -117,7 +116,8 @@ function AuthPage({ onSignIn, onUseMockData }: AuthProps) {
                                 disabled={loading}
                             >
                                 <div className="account-avatar">
-                                    {account.displayName?.[0]?.toUpperCase() ||
+                                    {(account.displayName &&
+                                        account.displayName[0].toUpperCase()) ||
                                         account.email[0].toUpperCase()}
                                 </div>
                                 <div className="account-info">

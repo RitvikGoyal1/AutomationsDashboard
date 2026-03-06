@@ -14,23 +14,19 @@ const msalInstance = new PublicClientApplication({
     },
 });
 
-let isInitialized = false;
-
 async function initializeMsal(): Promise<void> {
-    if (isInitialized) return;
     await msalInstance.initialize();
-    isInitialized = true;
 }
 
 export async function getAccessToken(): Promise<string | null> {
     if (!CLIENT_ID) {
-        throw new Error("!!Client ID not found!!");
+        throw new Error("Client ID not found");
     }
     await initializeMsal();
     const request = { scopes: SCOPES };
 
     const redirectResult = await msalInstance.handleRedirectPromise();
-    if (redirectResult?.account) {
+    if (redirectResult && redirectResult.account) {
         msalInstance.setActiveAccount(redirectResult.account);
     }
 

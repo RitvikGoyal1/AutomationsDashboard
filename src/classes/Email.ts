@@ -1,4 +1,4 @@
-// Abstract base class for SentEmail and ReceivedEmail
+// base class for emails
 class Email {
     protected id: string;
     protected subject: string;

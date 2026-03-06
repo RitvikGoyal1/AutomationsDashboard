@@ -1,6 +1,6 @@
 import Email from "./Email";
 
-// Inherit from Email and add recipient variable
+// sent email with recipient
 class SentEmail extends Email {
     private recipient: string;
     constructor(id: string, subject: string, body: string, date: Date, recipient: string) {

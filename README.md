@@ -1,11 +1,12 @@
-# To Do List
+# Welcome, Getting Started
 
-- Implement a search bar that considers senders, subjects and body
-  - Merge Sort and Binary Search
-- Database for storing user information
-- To Do List tracker from emails :check:
-- Personalization generator for replies :check:
-- Sent Email Full View
+Live Link: https://automations-dashboard-jyx8.vercel.app/
+
+To run the application, please follow these steps:
+1. cd to the folder in which this project is saved
+2. Run `npm i`
+3. Run `npm run dev`
+
 
 # React + TypeScript + Vite
 

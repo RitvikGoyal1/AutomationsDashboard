@@ -8,10 +8,10 @@ interface SentProps {
     accessToken: string | null;
     useMockData?: boolean;
 }
-// Similar to inbox but shows sent emails
+// show sent emails page
 function Sent({ emails, accessToken, useMockData }: SentProps) {
     const [displayEmails, setDisplayEmails] = useState<SentEmail[]>(emails);
-    // Mock sent email data for those who didn't log in
+    // mock data for testing
     const mockEmails = (): SentEmail[] => [
         new SentEmail(
             "Mock1",
@@ -75,10 +75,10 @@ function Sent({ emails, accessToken, useMockData }: SentProps) {
     return (
         <>
             {!accessToken && !useMockData ? (
-                // if no access token and the user did not select mock data, send them back to login page
+                // redirect to login if not logged in
                 <Navigate to="/" replace />
             ) : (
-                // Otherwise display the Sent Emails or mock emails
+                // show sent emails
                 <div style={{ display: "flex", height: "100vh" }}>
                     <div
                         style={{
@@ -131,7 +131,7 @@ function Sent({ emails, accessToken, useMockData }: SentProps) {
                         {displayEmails.length > 0 && (
                             <div>
                                 {displayEmails.map((email) => (
-                                    // Display each email with an option to full view as well
+                                    // show email preview
                                     <Link
                                         key={email.getId()}
                                         to="/sent/email"
@@ -178,7 +178,7 @@ function Sent({ emails, accessToken, useMockData }: SentProps) {
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {/* 100 characters preview */}
+                                                {/* show preview */}
                                                 {email.getBody().substring(0, 100)}...
                                             </div>
                                         </div>

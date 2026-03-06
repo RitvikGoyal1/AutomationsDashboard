@@ -1,4 +1,4 @@
-// User class to store user information like writing style and tasks
+// user info and settings
 class User {
     private writingStyle: string;
     private tasks = "";

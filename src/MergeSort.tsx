@@ -1,7 +1,10 @@
 import ReceivedEmail from "./classes/ReceivedEmail";
-// Merge sort to sort emails by subject
-const compareBySubject = (left: ReceivedEmail, right: ReceivedEmail): number =>
-    left.getSubject().toLowerCase().localeCompare(right.getSubject().toLowerCase());
+// sort emails by subject using merge sort
+const compareBySubject = (left: ReceivedEmail, right: ReceivedEmail): number => {
+    const leftSubj = left.getSubject().toLowerCase();
+    const rightSubj = right.getSubject().toLowerCase();
+    return leftSubj.localeCompare(rightSubj);
+};
 
 const mergeBySubject = (left: ReceivedEmail[], right: ReceivedEmail[]): ReceivedEmail[] => {
     const merged: ReceivedEmail[] = [];
@@ -20,7 +23,7 @@ const mergeBySubject = (left: ReceivedEmail[], right: ReceivedEmail[]): Received
 
     return merged.concat(left.slice(leftIndex)).concat(right.slice(rightIndex));
 };
-// Find the mdiddle and recursively sort the left and right halves and then merge them together
+// split in half, sort both sides, then merge back
 export const mergeSortEmailsBySubject = (emails: ReceivedEmail[]): ReceivedEmail[] => {
     if (emails.length <= 1) {
         return emails;

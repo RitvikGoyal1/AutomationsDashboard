@@ -20,14 +20,14 @@ class TaskNode {
     }
 
     public getChildren(): TaskNode[] {
-        // Return a copy of the children array
+        // return copy of children
         return [...this.children];
     }
 
     public getParent(): TaskNode | null {
         return this.parent;
     }
-    // Add a child with complete error checking and correctly adding it by setting parent and adding it to children array
+    // add child node with error checking
     public addChild(child: TaskNode): void {
         if (child === this) {
             throw new Error("A node cannot be a child of itself");

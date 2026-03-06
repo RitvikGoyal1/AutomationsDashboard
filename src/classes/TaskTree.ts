@@ -1,11 +1,11 @@
 import TaskNode from "./TaskNode";
-// A class for creating a tree of tasks, tasknodes, and consists of all functions to manipulate the tree and its nodes like adding, removing, transversing and finding nodes.
+// tree structure for tasks and subtasks
 class TaskTree {
     private root: TaskNode | null;
     private nodeCount: number;
     private readonly maxSize: number;
 
-    // Starts with an empty tree and default maxSize of 500 if its not set
+    // start with empty tree, default max is 500
     constructor(rootDescription?: string, maxSize = 500) {
         this.maxSize = maxSize;
         this.root = null;
@@ -15,7 +15,7 @@ class TaskTree {
             this.nodeCount = 1;
         }
     }
-    // If the root is empty that means the tree is empty
+    // check if tree empty
     public isEmpty(): boolean {
         return this.root === null;
     }
@@ -23,7 +23,7 @@ class TaskTree {
     public getRoot(): TaskNode | null {
         return this.root;
     }
-    // Ensure that the root is only set once and the description isn't empty
+    // set root node (only once)
     public setRoot(description: string): void {
         const des = description.trim();
         if (!des) {
@@ -35,18 +35,17 @@ class TaskTree {
         this.root = new TaskNode(des);
         this.nodeCount = 1;
     }
-    // Check if a node exists
+    // does node exist in tree
     public contains(description: string): boolean {
         return this.findTask(description) !== null;
     }
-    // Find a node in the tree based on description or null if doesnt exist
+    // find node by description, returns null if not found
     public findTask(description: string): TaskNode | null {
         const des = description.trim();
         if (!des || this.root === null) {
             return null;
         }
-        // BFS to find the node with the description, trimming the description and checking if not empty and then traversal
-        // Use a queue for BFS traversal
+        // use BFS to search
         const queue: TaskNode[] = [this.root];
         while (queue.length > 0) {
             const current = queue.shift();
@@ -60,7 +59,7 @@ class TaskTree {
         }
         return null;
     }
-    // Add a task to the tree by finding the parent and then adding the new task as a child
+    // add new task under a parent task
     public addTask(parentDescription: string, taskDescription: string): void {
         const normalizedParent = parentDescription.trim();
         const normalizedTask = taskDescription.trim();
@@ -93,7 +92,7 @@ class TaskTree {
         parent.addChild(new TaskNode(normalizedTask));
         this.nodeCount += 1;
     }
-    // Remove a task by finding the node and then removing it from its parent, also removing all of its children and updating the node count
+    // remove task and all its children
     public removeTask(taskDescription: string): boolean {
         const normalizedTask = taskDescription.trim();
         if (!normalizedTask) {
@@ -123,32 +122,32 @@ class TaskTree {
         }
         return removed;
     }
-    // Traverse the tree in pre-order (Parent - Child - Grand Child) and return an array of nodes in that order
+    // go through tree in pre-order
     public traversePreOrder(): TaskNode[] {
         if (this.root === null) {
             return [];
         }
         const output: TaskNode[] = [];
-        // Recursively Traverse the Tree
+        // recursive traversal
         this.walkPreOrder(this.root, output);
         return output;
     }
-    // Create a tree from an array of indented lines by using get relationships and use a stack for parent nodes
+    // build tree from indented text lines
     public static fromTaskLines(lines: string[]): TaskTree {
         const tree = new TaskTree();
         const stack: Array<{ depth: number; node: TaskNode }> = [];
-        // For each line, get its depth by using leading spaces, then find its parent based on the stack and add it as a child to the parent
+        // process each line and find its parent based on indent
         for (const rawLine of lines) {
             if (!rawLine || !rawLine.trim()) {
                 continue;
             }
             const depth = this.getDepth(rawLine);
-            // Removes special characters
+            // clean up the line
             const parsedDescription = this.cleanTaskLine(rawLine);
             if (!parsedDescription) {
                 continue;
             }
-            // Make descriptions unique with nums if needed
+            // make sure description is unique
             const uniqueDescription = this.makeUniqueDescription(tree, parsedDescription);
 
             if (tree.isEmpty()) {
@@ -159,7 +158,7 @@ class TaskTree {
                 }
                 continue;
             }
-            // Pop from the stack until we find the correct parent using depth
+            // find parent by popping stack till we get right depth
             while (stack.length > 0 && depth <= stack[stack.length - 1].depth) {
                 stack.pop();
             }
@@ -178,7 +177,7 @@ class TaskTree {
 
         return tree;
     }
-    // Check for duplicate descriptions and make them unique by adding nums
+    // add numbers to duplicate descriptions
     private static makeUniqueDescription(tree: TaskTree, description: string): string {
         if (!tree.contains(description)) {
             return description;
@@ -191,21 +190,22 @@ class TaskTree {
         }
         return candidate;
     }
-    // Gets the depth using the number of leading spaces as part of the expected response
+    // get depth from leading spaces
     private static getDepth(taskLine: string): number {
         const tabToSpaces = taskLine.replace(/\t/g, "  ");
         const leadingSpaces = tabToSpaces.length - tabToSpaces.trimStart().length;
         return Math.floor(leadingSpaces / 2);
     }
-    // Remove all special characters
+    // remove bullets and numbers from start of line
     private static cleanTaskLine(taskLine: string): string {
-        return taskLine
-            .trim()
-            .replace(/^[-*]\s+/, "")
-            .replace(/^\d+(\.\d+)*[.)]?\s+/, "")
-            .trim();
+        let line = taskLine.trim();
+        // remove bullet points
+        line = line.replace(/^[-*]\s+/, "");
+        // remove numbers like "1." or "2)"
+        line = line.replace(/^\d+[.)]\s+/, "");
+        return line.trim();
     }
-    // Recursive, count number of descendants in the subtree including itself
+    // count nodes in subtree
     private countSubtreeNodes(node: TaskNode): number {
         let total = 1;
         for (const child of node.getChildren()) {
@@ -213,7 +213,7 @@ class TaskTree {
         }
         return total;
     }
-    // Recursive traversal to be used for the preorder traversal, adding node and its children
+    // recursive helper for preorder
     private walkPreOrder(node: TaskNode, output: TaskNode[]): void {
         output.push(node);
         for (const child of node.getChildren()) {
