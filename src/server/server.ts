@@ -1,5 +1,11 @@
 import express, { type Request, type Response } from "express";
-import { initDB, saveOrUpdateUser, getRecentUsers } from "./database.js";
+import {
+    initDB,
+    saveOrUpdateUser,
+    getRecentUsers,
+    saveEmail,
+    getEmailsForUser,
+} from "./database.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -53,6 +59,36 @@ app.get("/api/users/recent", async (_req: Request, res: Response) => {
     } catch (error) {
         console.error("Get users error:", error);
         res.status(500).json({ error: "Failed to get users" });
+    }
+});
+
+// Save email to database
+app.post("/api/email", async (req: Request, res: Response) => {
+    try {
+        const { emailId, userEmail, subject, sender, receivedDatetime } = req.body;
+        if (!emailId || !userEmail) {
+            return res.status(400).json({ error: "emailId and userEmail are required" });
+        }
+        await saveEmail(emailId, userEmail, subject || "", sender || "", receivedDatetime || "");
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Save email error:", error);
+        res.status(500).json({ error: "Failed to save email" });
+    }
+});
+
+// Get emails from database for a user
+app.get("/api/emails", async (req: Request, res: Response) => {
+    try {
+        const userEmail = req.query.userEmail as string;
+        if (!userEmail) {
+            return res.status(400).json({ error: "userEmail is required" });
+        }
+        const emails = await getEmailsForUser(userEmail);
+        res.json({ emails });
+    } catch (error) {
+        console.error("Get emails error:", error);
+        res.status(500).json({ error: "Failed to get emails" });
     }
 });
 

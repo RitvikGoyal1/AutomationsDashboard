@@ -14,8 +14,7 @@ interface SavedAccount {
 }
 
 const API_BASE = (
-    import.meta.env.VITE_API_BASE_URL ||
-    (import.meta.env.PROD ? "" : "http://localhost:3001")
+    import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "" : "http://localhost:3001")
 ).replace(/\/$/, "");
 
 function maskEmail(email: string): string {
@@ -106,38 +105,35 @@ function AuthPage({ onSignIn, onUseMockData }: AuthProps) {
 
     return (
         <div className="auth-container">
+            {savedAccounts.length > 0 && (
+                <div className="auth-sidebar">
+                    <p className="auth-subtitle">Continue with:</p>
+                    <div className="account-list">
+                        {savedAccounts.map((account) => (
+                            <button
+                                key={account.email}
+                                className="account-button"
+                                onClick={handleQuickLogin}
+                                disabled={loading}
+                            >
+                                <div className="account-avatar">
+                                    {account.displayName?.[0]?.toUpperCase() ||
+                                        account.email[0].toUpperCase()}
+                                </div>
+                                <div className="account-info">
+                                    <div className="account-name">
+                                        {account.displayName || maskEmail(account.email)}
+                                    </div>
+                                    <div className="account-email">{maskEmail(account.email)}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div className="auth-card">
                 <h1 className="auth-title">Mail Automation Dashboard</h1>
-
-                {savedAccounts.length > 0 && (
-                    <>
-                        <p className="auth-subtitle">Continue with:</p>
-                        <div className="account-list">
-                            {savedAccounts.map((account) => (
-                                <button
-                                    key={account.email}
-                                    className="account-button"
-                                    onClick={handleQuickLogin}
-                                    disabled={loading}
-                                >
-                                    <div className="account-avatar">
-                                        {account.displayName?.[0]?.toUpperCase() ||
-                                            account.email[0].toUpperCase()}
-                                    </div>
-                                    <div className="account-info">
-                                        <div className="account-name">
-                                            {account.displayName || maskEmail(account.email)}
-                                        </div>
-                                        <div className="account-email">
-                                            {maskEmail(account.email)}
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                        <div className="divider">or</div>
-                    </>
-                )}
 
                 <button className="auth-button" onClick={handleSignIn} disabled={loading}>
                     {loading ? "Signing in..." : "Sign in with Microsoft"}

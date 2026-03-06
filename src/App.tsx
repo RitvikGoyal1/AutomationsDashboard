@@ -9,6 +9,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Sent from "./Sent.tsx";
 import Tasks from "./Tasks.tsx";
+import Backup from "./Backup.tsx";
 import MistralServices from "./classes/MistralServices.ts";
 import User from "./classes/User";
 import { mergeSortEmailsBySubject } from "./MergeSort";
@@ -97,6 +98,35 @@ function App() {
             const microsoftGraphServices = new MicrosoftGraphServices(accessToken);
             const receivedEmails = await microsoftGraphServices.getReceivedEmails();
             setEmails(receivedEmails);
+
+            // Save emails to database
+            const decodedToken = decodeJwt(accessToken);
+            const userEmail = decodedToken?.upn || decodedToken?.email || "";
+            if (userEmail) {
+                for (const email of receivedEmails) {
+                    try {
+                        await fetch(
+                            (
+                                import.meta.env.VITE_API_BASE_URL ||
+                                (import.meta.env.PROD ? "" : "http://localhost:3001")
+                            ).replace(/\/$/, "") + "/api/email",
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    emailId: email.getId(),
+                                    userEmail,
+                                    subject: email.getSubject(),
+                                    sender: email.getSender(),
+                                    receivedDatetime: email.getDate().toISOString(),
+                                }),
+                            }
+                        );
+                    } catch (err) {
+                        console.error("Error saving email to database:", err);
+                    }
+                }
+            }
         } catch (e) {
             console.error("Error fetching");
             setError("Error fetching");
@@ -116,6 +146,10 @@ function App() {
                 <Route
                     path="/Tasks"
                     element={<Tasks accessToken={accessToken} useMockData={useMockData} />}
+                />
+                <Route
+                    path="/backup"
+                    element={<Backup accessToken={accessToken} useMockData={useMockData} />}
                 />
                 <Route
                     path="/"
@@ -180,6 +214,14 @@ function App() {
                                                 style={{ textDecoration: "none", color: "#555" }}
                                             >
                                                 Tasks
+                                            </Link>
+                                        </li>
+                                        <li style={{ marginBottom: "10px" }}>
+                                            <Link
+                                                to="/backup"
+                                                style={{ textDecoration: "none", color: "#555" }}
+                                            >
+                                                Backup
                                             </Link>
                                         </li>
                                     </ul>
@@ -273,14 +315,16 @@ function App() {
                                                 }
                                                 // Sort and filter emails by selected date
                                                 const sortedByDate = [...emails].sort(
-                                                    (a, b) => a.getDate().getTime() - b.getDate().getTime()
+                                                    (a, b) =>
+                                                        a.getDate().getTime() -
+                                                        b.getDate().getTime()
                                                 );
                                                 const targetTime = new Date(
                                                     startDate.getFullYear(),
                                                     startDate.getMonth(),
                                                     startDate.getDate()
                                                 ).getTime();
-                                                
+
                                                 const results = sortedByDate.filter((email) => {
                                                     const emailDate = email.getDate();
                                                     const emailTime = new Date(
@@ -290,11 +334,13 @@ function App() {
                                                     ).getTime();
                                                     return emailTime === targetTime;
                                                 });
-                                                
+
                                                 setSearchResults(results);
                                                 setShowSearchResult(true);
                                                 if (results.length === 0) {
-                                                    alert(`No email found on: ${startDate.toLocaleDateString()}`);
+                                                    alert(
+                                                        `No email found on: ${startDate.toLocaleDateString()}`
+                                                    );
                                                 }
                                             }}
                                         >

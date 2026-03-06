@@ -83,3 +83,64 @@ export async function getRecentUsers(limit = 5): Promise<UserAccount[]> {
         lastLogin: row.last_login,
     }));
 }
+
+// Save email to database (linked to user)
+export async function saveEmail(
+    emailId: string,
+    userEmail: string,
+    subject: string,
+    sender: string,
+    receivedDatetime: string
+): Promise<void> {
+    const pool = await initDB();
+    try {
+        // Get user_id from email address
+        const userResult = await pool.query("SELECT user_id FROM users WHERE email = $1", [
+            userEmail,
+        ]);
+        if (userResult.rows.length === 0) {
+            console.log(`User ${userEmail} not found, skipping email save`);
+            return;
+        }
+        const userId = userResult.rows[0].user_id;
+
+        // Insert or update email
+        await pool.query(
+            `INSERT INTO emails (email_id, user_id, subject, sender, received_datetime)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (email_id) DO UPDATE SET
+                subject = EXCLUDED.subject,
+                sender = EXCLUDED.sender,
+                received_datetime = EXCLUDED.received_datetime`,
+            [emailId, userId, subject, sender, receivedDatetime]
+        );
+    } catch (error) {
+        console.error("Error saving email:", error);
+    }
+}
+
+// Get emails from database for a specific user
+export async function getEmailsForUser(userEmail: string): Promise<
+    Array<{
+        email_id: string;
+        subject: string;
+        sender: string;
+        received_datetime: string;
+    }>
+> {
+    const pool = await initDB();
+    try {
+        const result = await pool.query(
+            `SELECT e.email_id, e.subject, e.sender, e.received_datetime
+             FROM emails e
+             JOIN users u ON e.user_id = u.user_id
+             WHERE u.email = $1
+             ORDER BY e.received_datetime DESC`,
+            [userEmail]
+        );
+        return result.rows;
+    } catch (error) {
+        console.error("Error fetching emails for user:", error);
+        return [];
+    }
+}

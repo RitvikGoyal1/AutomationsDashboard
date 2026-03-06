@@ -109,6 +109,14 @@ function Sent({ emails, accessToken, useMockData }: SentProps) {
                                     Tasks
                                 </Link>
                             </li>
+                            <li style={{ marginBottom: "10px" }}>
+                                <Link
+                                    to="/backup"
+                                    style={{ textDecoration: "none", color: "#555" }}
+                                >
+                                    Backup
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
