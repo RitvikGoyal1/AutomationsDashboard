@@ -19,6 +19,7 @@ function Tasks({ accessToken, useMockData }: SentProps) {
     const [taskTree, setTaskTree] = useState<TaskTree | null>(null);
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
     const [, setTreeVersion] = useState(0);
+    const [subtaskInputs, setSubtaskInputs] = useState<Map<string, string>>(new Map());
     // This function is used to parse a raw task to understand where it fits in the tree structure based on the number of spaces
     const countLeadingSpaces = (line: string): number => line.length - line.trimStart().length;
     // This function ensures that the metadata is under the correct task
@@ -98,18 +99,50 @@ function Tasks({ accessToken, useMockData }: SentProps) {
             return next;
         });
     };
-    // This function is used to mark a task completed or incomplete and rerender the tree
+    // This function removes a task from the tree when checked off
     const toggleCompleted = (node: TaskNode): void => {
-        if (node.isCompleted()) {
-            node.markIncomplete();
-        } else {
-            node.markCompleted();
-        }
+        if (!taskTree) return;
+        const description = node.getDescription();
+        taskTree.removeTask(description);
         setTreeVersion((current) => current + 1);
+    };
+    // Add a subtask to a parent node
+    const addSubtask = (parentDescription: string): void => {
+        if (!taskTree) return;
+        const subtaskText = subtaskInputs.get(parentDescription)?.trim();
+        if (!subtaskText) return;
+        
+        try {
+            taskTree.addTask(parentDescription, subtaskText);
+            setSubtaskInputs((prev) => {
+                const next = new Map(prev);
+                next.set(parentDescription, "");
+                return next;
+            });
+            setTreeVersion((current) => current + 1);
+        } catch (error) {
+            console.error("Error adding subtask:", error);
+        }
+    };
+    // Update subtask input value
+    const updateSubtaskInput = (nodeDescription: string, value: string): void => {
+        setSubtaskInputs((prev) => {
+            const next = new Map(prev);
+            next.set(nodeDescription, value);
+            return next;
+        });
     };
     // This function is used to render a task node and its children recursively with styling
     const renderTaskNode = (node: TaskNode, depth: number) => {
         const children = node.getChildren();
+        // Sort children: non-metadata first, then metadata
+        const sortedChildren = [...children].sort((a, b) => {
+            const aIsMetadata = isTaskMetadata(a.getDescription());
+            const bIsMetadata = isTaskMetadata(b.getDescription());
+            if (aIsMetadata && !bIsMetadata) return 1;
+            if (!aIsMetadata && bIsMetadata) return -1;
+            return 0;
+        });
         const hasChildren = children.length > 0;
         const isExpanded = expandedNodes.has(node.getDescription());
         const isMetadata = isTaskMetadata(node.getDescription());
@@ -141,24 +174,68 @@ function Tasks({ accessToken, useMockData }: SentProps) {
                     {!isMetadata && (
                         <input
                             type="checkbox"
-                            checked={node.isCompleted()}
+                            checked={false}
                             onChange={() => toggleCompleted(node)}
                         />
                     )}
                     <span
                         style={{
                             fontSize: "14px",
-                            textDecoration:
-                                !isMetadata && node.isCompleted() ? "line-through" : "none",
-                            color: isMetadata ? "#555" : node.isCompleted() ? "#777" : "#222",
+                            color: isMetadata ? "#555" : "#222",
                             fontStyle: isMetadata ? "italic" : "normal",
+                            flex: 1,
                         }}
                     >
                         {node.getDescription()}
                     </span>
                 </div>
+                {!isMetadata && isExpanded && (
+                    <div
+                        style={{
+                            marginLeft: "28px",
+                            padding: "8px 15px",
+                            backgroundColor: "#fafafa",
+                            display: "flex",
+                            gap: "6px",
+                            alignItems: "center",
+                        }}
+                    >
+                        <input
+                            type="text"
+                            placeholder="Add subtask..."
+                            value={subtaskInputs.get(node.getDescription()) || ""}
+                            onChange={(e) => updateSubtaskInput(node.getDescription(), e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    addSubtask(node.getDescription());
+                                }
+                            }}
+                            style={{
+                                flex: 1,
+                                padding: "6px 10px",
+                                border: "1px solid #ddd",
+                                borderRadius: "4px",
+                                fontSize: "13px",
+                            }}
+                        />
+                        <button
+                            onClick={() => addSubtask(node.getDescription())}
+                            style={{
+                                padding: "6px 12px",
+                                backgroundColor: "#1a73e8",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "13px",
+                            }}
+                        >
+                            Add
+                        </button>
+                    </div>
+                )}
                 {/*Recursively render children if expanded */}
-                {isExpanded && children.map((child) => renderTaskNode(child, depth + 1))}
+                {isExpanded && sortedChildren.map((child) => renderTaskNode(child, depth + 1))}
             </div>
         );
     };

@@ -20,10 +20,6 @@ class TaskTree {
         return this.root === null;
     }
 
-    public size(): number {
-        return this.nodeCount;
-    }
-
     public getRoot(): TaskNode | null {
         return this.root;
     }
@@ -127,17 +123,6 @@ class TaskTree {
         }
         return removed;
     }
-    // Get the children of a task by finding the node and then returning its children
-    public getChildrenOf(taskDescription: string): TaskNode[] {
-        if (this.root === null) {
-            throw new Error("Empty Tree");
-        }
-        const node = this.findTask(taskDescription);
-        if (!node) {
-            throw new Error(`${taskDescription} Doesn't exist`);
-        }
-        return node.getChildren();
-    }
     // Traverse the tree in pre-order (Parent - Child - Grand Child) and return an array of nodes in that order
     public traversePreOrder(): TaskNode[] {
         if (this.root === null) {
@@ -147,19 +132,6 @@ class TaskTree {
         // Recursively Traverse the Tree
         this.walkPreOrder(this.root, output);
         return output;
-    }
-    // Adds indentation based on level on the tree for heirarchy
-    public toIndentedLines(indentSize = 2): string[] {
-        if (indentSize <= 0) {
-            throw new Error("indentSize !> 0");
-        }
-        if (!this.root) {
-            return [];
-        }
-        const lines: string[] = [];
-        // Recursively traverse the tree and add indentation based on depth in the tree
-        this.walkIndented(this.root, 0, indentSize, lines);
-        return lines;
     }
     // Create a tree from an array of indented lines by using get relationships and use a stack for parent nodes
     public static fromTaskLines(lines: string[]): TaskTree {
@@ -246,14 +218,6 @@ class TaskTree {
         output.push(node);
         for (const child of node.getChildren()) {
             this.walkPreOrder(child, output);
-        }
-    }
-    //Recursively formats the tree into indented lines
-    private walkIndented(node: TaskNode, depth: number, indentSize: number, lines: string[]): void {
-        const indent = " ".repeat(depth * indentSize);
-        lines.push(`${indent}- ${node.getDescription()}`);
-        for (const child of node.getChildren()) {
-            this.walkIndented(child, depth + 1, indentSize, lines);
         }
     }
 }

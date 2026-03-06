@@ -4,7 +4,6 @@ class TaskNode {
     private description: string;
     private children: TaskNode[];
     private parent: TaskNode | null;
-    private completed: boolean;
 
     constructor(description: string) {
         const des = description.trim();
@@ -14,19 +13,10 @@ class TaskNode {
         this.description = des;
         this.children = [];
         this.parent = null;
-        this.completed = false;
     }
 
     public getDescription(): string {
         return this.description;
-    }
-
-    public setDescription(nextDescription: string): void {
-        const des = nextDescription.trim();
-        if (!des) {
-            throw new Error("Description is empty");
-        }
-        this.description = des;
     }
 
     public getChildren(): TaskNode[] {
@@ -36,18 +26,6 @@ class TaskNode {
 
     public getParent(): TaskNode | null {
         return this.parent;
-    }
-
-    public isCompleted(): boolean {
-        return this.completed;
-    }
-
-    public markCompleted(): void {
-        this.completed = true;
-    }
-
-    public markIncomplete(): void {
-        this.completed = false;
     }
     // Add a child with complete error checking and correctly adding it by setting parent and adding it to children array
     public addChild(child: TaskNode): void {
