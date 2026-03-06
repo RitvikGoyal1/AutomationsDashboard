@@ -393,6 +393,7 @@ function App() {
                                                     newUser,
                                                     emailSamples
                                                 );
+                                                alert("Understanding Writing Style Complete");
                                                 console.log(
                                                     "Detected writing style:",
                                                     newUser.getWritingStyle()
