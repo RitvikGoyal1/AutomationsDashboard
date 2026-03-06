@@ -1,28 +1,33 @@
 .auth-container {
+    position: relative;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     height: 100vh;
     width: 100%;
-    gap: 40px;
-    padding: 0 40px;
 }
 
 .auth-sidebar {
+    position: absolute;
+    left: 40px;
     width: 300px;
     flex-shrink: 0;
 }
 
 .auth-card {
-    flex: 1;
     max-width: 400px;
+    height: 100%;
     text-align: center;
+    padding: 50px;
+    padding-top: 20vh;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
 .auth-title {
     font-size: 30px;
     margin-bottom: 12px;
     color: black;
+    padding-bottom: 30%;
 }
 
 .auth-subtitle {
