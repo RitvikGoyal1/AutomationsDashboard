@@ -95,45 +95,61 @@ function App() {
         setLoading(true);
         setError(null);
         try {
+            console.log("Starting to fetch emails from Microsoft Graph...");
             const microsoftGraphServices = new MicrosoftGraphServices(accessToken);
             const receivedEmails = await microsoftGraphServices.getReceivedEmails();
+            console.log(`Fetched ${receivedEmails.length} emails from Microsoft Graph`);
             setEmails(receivedEmails);
 
             // Save emails to database
             const decodedToken = decodeJwt(accessToken);
             const userEmail = decodedToken?.upn || decodedToken?.email || "";
+            console.log(`User email: ${userEmail}`);
+            
             if (userEmail) {
                 console.log(`Saving ${receivedEmails.length} emails to backup for ${userEmail}`);
+                let savedCount = 0;
+                let failedCount = 0;
+                
                 for (const email of receivedEmails) {
                     try {
-                        const response = await fetch(
-                            (
-                                import.meta.env.VITE_API_BASE_URL ||
-                                (import.meta.env.PROD ? "" : "http://localhost:3001")
-                            ).replace(/\/$/, "") + "/api/email",
-                            {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    emailId: email.getId(),
-                                    userEmail,
-                                    subject: email.getSubject(),
-                                    sender: email.getSender(),
-                                    receivedDatetime: email.getDate().toISOString(),
-                                }),
-                            }
-                        );
+                        const apiUrl = (
+                            import.meta.env.VITE_API_BASE_URL ||
+                            (import.meta.env.PROD ? "" : "http://localhost:3001")
+                        ).replace(/\/$/, "") + "/api/email";
+                        
+                        console.log(`Saving email ${email.getId()} to ${apiUrl}`);
+                        
+                        const response = await fetch(apiUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                emailId: email.getId(),
+                                userEmail,
+                                subject: email.getSubject(),
+                                sender: email.getSender(),
+                                receivedDatetime: email.getDate().toISOString(),
+                            }),
+                        });
+                        
                         if (!response.ok) {
-                            console.error(`Failed to save email ${email.getId()}:`, response.status);
+                            const text = await response.text();
+                            console.error(`❌ Failed to save email ${email.getId()}: ${response.status} - ${text}`);
+                            failedCount++;
+                        } else {
+                            savedCount++;
                         }
                     } catch (err) {
-                        console.error("Error saving email to database:", err);
+                        console.error("❌ Error saving email to database:", err);
+                        failedCount++;
                     }
                 }
-                console.log("Finished saving emails to backup");
+                console.log(`✅ Finished saving emails: ${savedCount} saved, ${failedCount} failed`);
+            } else {
+                console.warn("⚠️ No user email found, skipping backup save");
             }
         } catch (e) {
-            console.error("Error fetching");
+            console.error("❌ Error fetching emails:", e);
             setError("Error fetching");
         } finally {
             setLoading(false);
