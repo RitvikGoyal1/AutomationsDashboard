@@ -1,6 +1,7 @@
 import { Link, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ReceivedEmail from "./classes/ReceivedEmail";
+import { getActiveAccount } from "./Auth.ts";
 import "./App.css";
 
 interface BackupProps {
@@ -16,17 +17,6 @@ function Backup({ accessToken, useMockData }: BackupProps) {
         import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "" : "http://localhost:3001")
     ).replace(/\/$/, "");
 
-    const decodeJwt = (token: string) => {
-        try {
-            const payload = token.split(".")[1];
-            const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-            const json = atob(base64);
-            return JSON.parse(json);
-        } catch (e) {
-            return null;
-        }
-    };
-
     useEffect(() => {
         if (useMockData || !accessToken) {
             setDisplayEmails([]);
@@ -36,22 +26,32 @@ function Backup({ accessToken, useMockData }: BackupProps) {
         const fetchBackupEmails = async () => {
             setLoading(true);
             try {
-                const decodedToken = decodeJwt(accessToken);
-                const userEmail = decodedToken?.upn || decodedToken?.email || "";
+                const account = await getActiveAccount();
+                const userEmail = account?.username || "";
+                
+                console.log("🔍 Backup: Active account:", account);
+                console.log("📧 Backup: User email:", userEmail);
 
                 if (!userEmail) {
+                    console.warn("⚠️ Backup: No user email found");
                     setDisplayEmails([]);
                     return;
                 }
 
+                console.log(`📥 Fetching backup emails for ${userEmail}`);
                 const response = await fetch(
                     `${API_BASE}/api/emails?userEmail=${encodeURIComponent(userEmail)}`
                 );
+                
+                console.log(`📥 Backup response status: ${response.status}`);
+                
                 if (!response.ok) {
                     throw new Error("Failed to fetch emails");
                 }
 
                 const data = await response.json();
+                console.log(`✅ Backup: Retrieved ${data.emails.length} emails from database`);
+                
                 const emails = data.emails.map(
                     (email: any) =>
                         new ReceivedEmail(
@@ -64,7 +64,7 @@ function Backup({ accessToken, useMockData }: BackupProps) {
                 );
                 setDisplayEmails(emails);
             } catch (error) {
-                console.error("Error fetching backup emails:", error);
+                console.error("❌ Error fetching backup emails:", error);
                 setDisplayEmails([]);
             } finally {
                 setLoading(false);
