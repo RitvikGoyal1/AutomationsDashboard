@@ -103,9 +103,10 @@ function App() {
             const decodedToken = decodeJwt(accessToken);
             const userEmail = decodedToken?.upn || decodedToken?.email || "";
             if (userEmail) {
+                console.log(`Saving ${receivedEmails.length} emails to backup for ${userEmail}`);
                 for (const email of receivedEmails) {
                     try {
-                        await fetch(
+                        const response = await fetch(
                             (
                                 import.meta.env.VITE_API_BASE_URL ||
                                 (import.meta.env.PROD ? "" : "http://localhost:3001")
@@ -122,10 +123,14 @@ function App() {
                                 }),
                             }
                         );
+                        if (!response.ok) {
+                            console.error(`Failed to save email ${email.getId()}:`, response.status);
+                        }
                     } catch (err) {
                         console.error("Error saving email to database:", err);
                     }
                 }
+                console.log("Finished saving emails to backup");
             }
         } catch (e) {
             console.error("Error fetching");

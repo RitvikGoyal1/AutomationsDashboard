@@ -1,4 +1,10 @@
 {
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev"
+  "devCommand": "npm run dev",
+  "rewrites": [
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
