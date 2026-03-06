@@ -28,30 +28,21 @@ function Backup({ accessToken, useMockData }: BackupProps) {
             try {
                 const account = await getActiveAccount();
                 const userEmail = account?.username || "";
-                
-                console.log("🔍 Backup: Active account:", account);
-                console.log("📧 Backup: User email:", userEmail);
 
                 if (!userEmail) {
-                    console.warn("⚠️ Backup: No user email found");
                     setDisplayEmails([]);
                     return;
                 }
 
-                console.log(`📥 Fetching backup emails for ${userEmail}`);
                 const response = await fetch(
                     `${API_BASE}/api/emails?userEmail=${encodeURIComponent(userEmail)}`
                 );
-                
-                console.log(`📥 Backup response status: ${response.status}`);
                 
                 if (!response.ok) {
                     throw new Error("Failed to fetch emails");
                 }
 
                 const data = await response.json();
-                console.log(`✅ Backup: Retrieved ${data.emails.length} emails from database`);
-                
                 const emails = data.emails.map(
                     (email: any) =>
                         new ReceivedEmail(
@@ -64,7 +55,7 @@ function Backup({ accessToken, useMockData }: BackupProps) {
                 );
                 setDisplayEmails(emails);
             } catch (error) {
-                console.error("❌ Error fetching backup emails:", error);
+                console.error("Error fetching backup emails:", error);
                 setDisplayEmails([]);
             } finally {
                 setLoading(false);
