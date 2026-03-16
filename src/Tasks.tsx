@@ -293,11 +293,11 @@ function Tasks({ accessToken, useMockData }: SentProps) {
         const loadTasksFromGraph = async (token: string) => {
             try {
                 const svc = new MicrosoftGraphServices(token);
-                const sent = await svc.getSentEmails();
+                const inbox = await svc.getReceivedEmails();
                 const u = new User();
                 await MistralServices.getTasks(
                     u,
-                    sent.map((e) => e.getBody())
+                    inbox.map((e) => e.getBody())
                 );
                 const tree = buildTaskTree(u.getTasks());
                 setTaskTree(tree);
